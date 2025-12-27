@@ -1,0 +1,32 @@
+[build-system]
+requires = [
+    "setuptools",
+    "setuptools-scm"
+]
+
+[tool.setuptools]
+packages = ["broker"]
+
+[project]
+name = "Broker"
+authors = [
+    {name = "Nathan Maxwell"}
+]
+description = "A library of various helpers that are inevitably rewritten in every project."
+readme = "README.md"
+requires-python = ">=3.10"
+keywords = ["python", "core", "util", "utils", "helpers"]
+license = { file = "LICENSE" }
+classifiers = [
+    "Programming Language :: Python :: 3.10",
+]
+dependencies = [
+    'importlib-metadata; python_version<"3.10"',
+    "pytest",
+    "pyyaml"
+]
+version = "0.1.0"
+
+[project.urls]
+Homepage = "https://github.com/nate-maxwell/broker"
+Source = "https://github.com/nate-maxwell/broker"
