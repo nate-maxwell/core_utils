@@ -2,7 +2,7 @@
 requires = ["setuptools"]
 
 [tool.setuptools]
-packages = ["core_utils"]
+packages = ["core"]
 
 [project]
 name = "core_utils"
