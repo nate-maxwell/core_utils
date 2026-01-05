@@ -1,3 +1,5 @@
+import pytest
+
 from core import regex
 
 
@@ -195,3 +197,58 @@ class TestPascaleToSnake:
 
     def test_pascale_to_snake_single_capital_at_end(self) -> None:
         assert regex.pascale_to_snake("testA") == "test_a"
+
+
+class TestCamelToSnake:
+
+    def test_simple_camel_case(self):
+        assert regex.camel_to_snake("myVariable") == "my_variable"
+        assert regex.camel_to_snake("userName") == "user_name"
+        assert regex.camel_to_snake("firstName") == "first_name"
+
+    def test_multiple_words(self):
+        assert regex.camel_to_snake("myLongVariableName") == "my_long_variable_name"
+        assert regex.camel_to_snake("thisIsATest") == "this_is_a_test"
+
+    def test_consecutive_capitals(self):
+        assert regex.camel_to_snake("HTTPResponse") == "http_response"
+        assert regex.camel_to_snake("parseHTMLDocument") == "parse_html_document"
+        assert regex.camel_to_snake("XMLParser") == "xml_parser"
+
+    def test_numbers_in_name(self):
+        assert regex.camel_to_snake("myVar2Name") == "my_var2_name"
+        assert regex.camel_to_snake("test123Value") == "test123_value"
+        assert regex.camel_to_snake("var1") == "var1"
+
+    def test_single_word(self):
+        assert regex.camel_to_snake("variable") == "variable"
+        assert regex.camel_to_snake("test") == "test"
+
+    def test_already_snake_case(self):
+        assert regex.camel_to_snake("my_variable") == "my_variable"
+        assert regex.camel_to_snake("user_name") == "user_name"
+
+    def test_empty_string(self):
+        assert regex.camel_to_snake("") == ""
+
+    def test_single_character(self):
+        assert regex.camel_to_snake("a") == "a"
+        assert regex.camel_to_snake("A") == "a"
+
+    def test_pascal_case(self):
+        assert regex.camel_to_snake("MyVariable") == "my_variable"
+        assert regex.camel_to_snake("UserName") == "user_name"
+
+    @pytest.mark.parametrize(
+        "input_str,expected",
+        [
+            ("camelCase", "camel_case"),
+            ("PascalCase", "pascal_case"),
+            ("simpleTest", "simple_test"),
+            ("aB", "a_b"),
+            ("getHTTPResponseCode", "get_http_response_code"),
+            ("HTTPResponseCodeXML", "http_response_code_xml"),
+        ],
+    )
+    def test_parametrized_cases(self, input_str, expected):
+        assert regex.camel_to_snake(input_str) == expected

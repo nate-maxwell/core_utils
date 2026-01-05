@@ -81,3 +81,17 @@ def pascale_to_snake(s: str) -> str:
     s1 = re.sub(r"(.)([A-Z][a-z]+)", r"\1_\2", s)
     snake = re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", s1)
     return snake.lower()
+
+
+def camel_to_snake(s: str) -> str:
+    """
+    Converts a camelCase string to snake_case.
+
+    Args:
+        s (str): The camelCase string.
+    Returns:
+        str: The snake_case version of the string.
+    """
+    s1 = re.sub(r"(.)([A-Z][a-z]+)", r"\1_\2", s)
+    snake = re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", s1)
+    return snake.lower()
