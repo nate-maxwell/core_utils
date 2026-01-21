@@ -13,7 +13,7 @@ def annotation_type(obj: Any) -> Any:
                 ...
 
     The recommended approach is to use a string annotation, but this is rather
-    unnatural in Python code
+    unnatural in Python code:
 
         class MyType:
             def copy_from(other: 'MyType'):
