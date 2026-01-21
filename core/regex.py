@@ -66,29 +66,39 @@ def is_path_like(value: str) -> bool:
     return False
 
 
-def pascale_to_snake(s: str) -> str:
-    """
-    Converts a PascalCase string to snake_case.
+# -----Casing------------------------------------------------------------------
 
-    Args:
-        s (str): The PascalCase string.
-    Returns:
-        str: The snake_case version of the string.
-    """
+
+def pascal_to_snake(s: str) -> str:
+    """Converts PascalCase to snake_case."""
     s1 = re.sub(r"(.)([A-Z][a-z]+)", r"\1_\2", s)
-    snake = re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", s1)
-    return snake.lower()
+    return re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", s1).lower()
+
+
+def pascal_to_camel(s: str) -> str:
+    """Converts PascalCase to camelCase."""
+    return s[0].lower() + s[1:] if s else s
 
 
 def camel_to_snake(s: str) -> str:
-    """
-    Converts a camelCase string to snake_case.
-
-    Args:
-        s (str): The camelCase string.
-    Returns:
-        str: The snake_case version of the string.
-    """
+    """Converts camelCase to snake_case."""
     s1 = re.sub(r"(.)([A-Z][a-z]+)", r"\1_\2", s)
-    snake = re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", s1)
-    return snake.lower()
+    return re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", s1).lower()
+
+
+def camel_to_pascal(s: str) -> str:
+    """Converts camelCase to PascalCase."""
+    return s[0].upper() + s[1:] if s else s
+
+
+def snake_to_pascal(s: str) -> str:
+    """Converts snake_case to PascalCase."""
+    return "".join(word.capitalize() for word in s.split("_") if word)
+
+
+def snake_to_camel(s: str) -> str:
+    """Converts snake_case to camelCase."""
+    words = [w for w in s.split("_") if w]
+    return (
+        words[0].lower() + "".join(w.capitalize() for w in words[1:]) if words else ""
+    )

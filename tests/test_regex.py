@@ -3,9 +3,6 @@ import pytest
 from core import regex
 
 
-# -----get_file_version_number Tests-------------------------------------------
-
-
 class TestGetFileVersionNumber:
     def test_get_file_version_number_standard_format(self) -> None:
         result = regex.get_file_version_number("GhostA_anim_v001.ma")
@@ -54,9 +51,6 @@ class TestGetFileVersionNumber:
     def test_get_file_version_number_with_path(self) -> None:
         result = regex.get_file_version_number("C:/folder/asset_v042.ma")
         assert result == "042"
-
-
-# -----is_path_like Tests------------------------------------------------------
 
 
 class TestIsPathLike:
@@ -141,62 +135,59 @@ class TestIsPathLike:
         assert regex.is_path_like(".txt") is False
 
 
-# -----pascale_to_snake Tests--------------------------------------------------
-
-
 class TestPascaleToSnake:
-    def test_pascale_to_snake_simple(self) -> None:
-        assert regex.pascale_to_snake("PascalCase") == "pascal_case"
+    def test_pascal_to_snake_simple(self) -> None:
+        assert regex.pascal_to_snake("PascalCase") == "pascal_case"
 
-    def test_pascale_to_snake_single_word(self) -> None:
-        assert regex.pascale_to_snake("Word") == "word"
+    def test_pascal_to_snake_single_word(self) -> None:
+        assert regex.pascal_to_snake("Word") == "word"
 
-    def test_pascale_to_snake_multiple_words(self) -> None:
-        assert regex.pascale_to_snake("ThisIsATest") == "this_is_a_test"
+    def test_pascal_to_snake_multiple_words(self) -> None:
+        assert regex.pascal_to_snake("ThisIsATest") == "this_is_a_test"
 
-    def test_pascale_to_snake_with_numbers(self) -> None:
-        assert regex.pascale_to_snake("Version2Update") == "version2_update"
+    def test_pascal_to_snake_with_numbers(self) -> None:
+        assert regex.pascal_to_snake("Version2Update") == "version2_update"
 
-    def test_pascale_to_snake_consecutive_capitals(self) -> None:
-        assert regex.pascale_to_snake("HTTPServer") == "http_server"
+    def test_pascal_to_snake_consecutive_capitals(self) -> None:
+        assert regex.pascal_to_snake("HTTPServer") == "http_server"
 
-    def test_pascale_to_snake_ending_with_capital(self) -> None:
-        assert regex.pascale_to_snake("GetHTTP") == "get_http"
+    def test_pascal_to_snake_ending_with_capital(self) -> None:
+        assert regex.pascal_to_snake("GetHTTP") == "get_http"
 
-    def test_pascale_to_snake_acronym(self) -> None:
-        assert regex.pascale_to_snake("XMLParser") == "xml_parser"
+    def test_pascal_to_snake_acronym(self) -> None:
+        assert regex.pascal_to_snake("XMLParser") == "xml_parser"
 
-    def test_pascale_to_snake_already_lowercase(self) -> None:
-        assert regex.pascale_to_snake("lowercase") == "lowercase"
+    def test_pascal_to_snake_already_lowercase(self) -> None:
+        assert regex.pascal_to_snake("lowercase") == "lowercase"
 
-    def test_pascale_to_snake_empty_string(self) -> None:
-        assert regex.pascale_to_snake("") == ""
+    def test_pascal_to_snake_empty_string(self) -> None:
+        assert regex.pascal_to_snake("") == ""
 
-    def test_pascale_to_snake_single_letter(self) -> None:
-        assert regex.pascale_to_snake("A") == "a"
+    def test_pascal_to_snake_single_letter(self) -> None:
+        assert regex.pascal_to_snake("A") == "a"
 
-    def test_pascale_to_snake_with_underscores(self) -> None:
+    def test_pascal_to_snake_with_underscores(self) -> None:
         # If input already has underscores, they're preserved
-        assert regex.pascale_to_snake("Pascal_Case") == "pascal__case"
+        assert regex.pascal_to_snake("Pascal_Case") == "pascal__case"
 
-    def test_pascale_to_snake_numbers_at_end(self) -> None:
-        assert regex.pascale_to_snake("Test123") == "test123"
+    def test_pascal_to_snake_numbers_at_end(self) -> None:
+        assert regex.pascal_to_snake("Test123") == "test123"
 
-    def test_pascale_to_snake_numbers_in_middle(self) -> None:
-        assert regex.pascale_to_snake("Test123Name") == "test123_name"
+    def test_pascal_to_snake_numbers_in_middle(self) -> None:
+        assert regex.pascal_to_snake("Test123Name") == "test123_name"
 
-    def test_pascale_to_snake_mixed_case(self) -> None:
-        assert regex.pascale_to_snake("iPhone") == "i_phone"
+    def test_pascal_to_snake_mixed_case(self) -> None:
+        assert regex.pascal_to_snake("iPhone") == "i_phone"
 
-    def test_pascale_to_snake_camel_case(self) -> None:
+    def test_pascal_to_snake_camel_case(self) -> None:
         # Also works for camelCase (starting with lowercase)
-        assert regex.pascale_to_snake("camelCase") == "camel_case"
+        assert regex.pascal_to_snake("camelCase") == "camel_case"
 
-    def test_pascale_to_snake_complex_example(self) -> None:
-        assert regex.pascale_to_snake("GetHTTPResponseCode") == "get_http_response_code"
+    def test_pascal_to_snake_complex_example(self) -> None:
+        assert regex.pascal_to_snake("GetHTTPResponseCode") == "get_http_response_code"
 
-    def test_pascale_to_snake_single_capital_at_end(self) -> None:
-        assert regex.pascale_to_snake("testA") == "test_a"
+    def test_pascal_to_snake_single_capital_at_end(self) -> None:
+        assert regex.pascal_to_snake("testA") == "test_a"
 
 
 class TestCamelToSnake:
@@ -252,3 +243,188 @@ class TestCamelToSnake:
     )
     def test_parametrized_cases(self, input_str, expected):
         assert regex.camel_to_snake(input_str) == expected
+
+
+class TestPascalToCamel:
+    def test_pascal_to_camel_simple(self) -> None:
+        assert regex.pascal_to_camel("PascalCase") == "pascalCase"
+
+    def test_pascal_to_camel_single_word(self) -> None:
+        assert regex.pascal_to_camel("Word") == "word"
+
+    def test_pascal_to_camel_multiple_words(self) -> None:
+        assert regex.pascal_to_camel("ThisIsATest") == "thisIsATest"
+
+    def test_pascal_to_camel_with_numbers(self) -> None:
+        assert regex.pascal_to_camel("Version2Update") == "version2Update"
+
+    def test_pascal_to_camel_acronym(self) -> None:
+        assert regex.pascal_to_camel("HTTPServer") == "hTTPServer"
+
+    def test_pascal_to_camel_already_camel_case(self) -> None:
+        assert regex.pascal_to_camel("alreadyCamel") == "alreadyCamel"
+
+    def test_pascal_to_camel_empty_string(self) -> None:
+        assert regex.pascal_to_camel("") == ""
+
+    def test_pascal_to_camel_single_letter(self) -> None:
+        assert regex.pascal_to_camel("A") == "a"
+
+    def test_pascal_to_camel_lowercase_word(self) -> None:
+        assert regex.pascal_to_camel("lowercase") == "lowercase"
+
+    def test_pascal_to_camel_mixed_case(self) -> None:
+        assert regex.pascal_to_camel("MyClassName") == "myClassName"
+
+
+class TestCamelToPascal:
+    def test_camel_to_pascal_simple(self) -> None:
+        assert regex.camel_to_pascal("camelCase") == "CamelCase"
+
+    def test_camel_to_pascal_single_word(self) -> None:
+        assert regex.camel_to_pascal("word") == "Word"
+
+    def test_camel_to_pascal_multiple_words(self) -> None:
+        assert regex.camel_to_pascal("thisIsATest") == "ThisIsATest"
+
+    def test_camel_to_pascal_with_numbers(self) -> None:
+        assert regex.camel_to_pascal("version2Update") == "Version2Update"
+
+    def test_camel_to_pascal_acronym(self) -> None:
+        assert regex.camel_to_pascal("hTTPServer") == "HTTPServer"
+
+    def test_camel_to_pascal_already_pascal_case(self) -> None:
+        assert regex.camel_to_pascal("AlreadyPascal") == "AlreadyPascal"
+
+    def test_camel_to_pascal_empty_string(self) -> None:
+        assert regex.camel_to_pascal("") == ""
+
+    def test_camel_to_pascal_single_letter(self) -> None:
+        assert regex.camel_to_pascal("a") == "A"
+
+    def test_camel_to_pascal_uppercase_word(self) -> None:
+        assert regex.camel_to_pascal("UPPERCASE") == "UPPERCASE"
+
+    def test_camel_to_pascal_mixed_case(self) -> None:
+        assert regex.camel_to_pascal("myVariableName") == "MyVariableName"
+
+
+class TestSnakeToPascal:
+    def test_snake_to_pascal_simple(self) -> None:
+        assert regex.snake_to_pascal("snake_case") == "SnakeCase"
+
+    def test_snake_to_pascal_single_word(self) -> None:
+        assert regex.snake_to_pascal("word") == "Word"
+
+    def test_snake_to_pascal_multiple_words(self) -> None:
+        assert regex.snake_to_pascal("this_is_a_test") == "ThisIsATest"
+
+    def test_snake_to_pascal_with_numbers(self) -> None:
+        assert regex.snake_to_pascal("version_2_update") == "Version2Update"
+
+    def test_snake_to_pascal_numbers_in_word(self) -> None:
+        assert regex.snake_to_pascal("var123_name") == "Var123Name"
+
+    def test_snake_to_pascal_already_pascal_case(self) -> None:
+        assert regex.snake_to_pascal("PascalCase") == "Pascalcase"
+
+    def test_snake_to_pascal_empty_string(self) -> None:
+        assert regex.snake_to_pascal("") == ""
+
+    def test_snake_to_pascal_single_letter(self) -> None:
+        assert regex.snake_to_pascal("a") == "A"
+
+    def test_snake_to_pascal_consecutive_underscores(self) -> None:
+        assert regex.snake_to_pascal("my__variable") == "MyVariable"
+
+    def test_snake_to_pascal_leading_underscore(self) -> None:
+        assert regex.snake_to_pascal("_my_variable") == "MyVariable"
+
+    def test_snake_to_pascal_trailing_underscore(self) -> None:
+        assert regex.snake_to_pascal("my_variable_") == "MyVariable"
+
+    def test_snake_to_pascal_uppercase_words(self) -> None:
+        assert regex.snake_to_pascal("HTTP_SERVER") == "HttpServer"
+
+    def test_snake_to_pascal_mixed_case_words(self) -> None:
+        assert regex.snake_to_pascal("My_Variable_Name") == "MyVariableName"
+
+    def test_snake_to_pascal_long_name(self) -> None:
+        assert regex.snake_to_pascal("get_http_response_code") == "GetHttpResponseCode"
+
+    @pytest.mark.parametrize(
+        "input_str,expected",
+        [
+            ("my_function_name", "MyFunctionName"),
+            ("user_id", "UserId"),
+            ("http_response", "HttpResponse"),
+            ("a_b_c", "ABC"),
+            ("test_123", "Test123"),
+        ],
+    )
+    def test_parametrized_cases(self, input_str, expected):
+        assert regex.snake_to_pascal(input_str) == expected
+
+
+class TestSnakeToCamel:
+    def test_snake_to_camel_simple(self) -> None:
+        assert regex.snake_to_camel("snake_case") == "snakeCase"
+
+    def test_snake_to_camel_single_word(self) -> None:
+        assert regex.snake_to_camel("word") == "word"
+
+    def test_snake_to_camel_multiple_words(self) -> None:
+        assert regex.snake_to_camel("this_is_a_test") == "thisIsATest"
+
+    def test_snake_to_camel_with_numbers(self) -> None:
+        assert regex.snake_to_camel("version_2_update") == "version2Update"
+
+    def test_snake_to_camel_numbers_in_word(self) -> None:
+        assert regex.snake_to_camel("var123_name") == "var123Name"
+
+    def test_snake_to_camel_already_camel_case(self) -> None:
+        assert regex.snake_to_camel("camelCase") == "camelcase"
+
+    def test_snake_to_camel_empty_string(self) -> None:
+        assert regex.snake_to_camel("") == ""
+
+    def test_snake_to_camel_single_letter(self) -> None:
+        assert regex.snake_to_camel("a") == "a"
+
+    def test_snake_to_camel_consecutive_underscores(self) -> None:
+        assert regex.snake_to_camel("my__variable") == "myVariable"
+
+    def test_snake_to_camel_leading_underscore(self) -> None:
+        assert regex.snake_to_camel("_my_variable") == "myVariable"
+
+    def test_snake_to_camel_trailing_underscore(self) -> None:
+        assert regex.snake_to_camel("my_variable_") == "myVariable"
+
+    def test_snake_to_camel_uppercase_words(self) -> None:
+        assert regex.snake_to_camel("HTTP_SERVER") == "httpServer"
+
+    def test_snake_to_camel_mixed_case_words(self) -> None:
+        assert regex.snake_to_camel("My_Variable_Name") == "myVariableName"
+
+    def test_snake_to_camel_long_name(self) -> None:
+        assert regex.snake_to_camel("get_http_response_code") == "getHttpResponseCode"
+
+    def test_snake_to_camel_two_words(self) -> None:
+        assert regex.snake_to_camel("user_name") == "userName"
+
+    def test_snake_to_camel_first_word_uppercase(self) -> None:
+        assert regex.snake_to_camel("User_name") == "userName"
+
+    @pytest.mark.parametrize(
+        "input_str,expected",
+        [
+            ("my_variable_name", "myVariableName"),
+            ("user_id", "userId"),
+            ("http_response", "httpResponse"),
+            ("a_b_c", "aBC"),
+            ("test_123", "test123"),
+            ("my_function", "myFunction"),
+        ],
+    )
+    def test_parametrized_cases(self, input_str, expected):
+        assert regex.snake_to_camel(input_str) == expected
