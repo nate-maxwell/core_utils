@@ -9,9 +9,6 @@ import re
 from typing import Optional
 
 
-version_padding = 3
-
-
 def get_file_version_number(file_name: str) -> Optional[str]:
     """
     Gets the integer version number of a file whose name
