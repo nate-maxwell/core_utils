@@ -28,11 +28,11 @@ def export_data_to_json(
         overwrite(bool): to overwrite JSON file if it already exists in path.
             Defaults to False.
     """
-    if not path.exists() or overwrite:
-        with open(path, "w") as outfile:
-            json.dump(data, outfile, indent=4)
-    else:
+    if not overwrite and path.exists():
         return
+
+    with open(path, "w") as outfile:
+        json.dump(data, outfile, indent=4)
 
 
 def import_data_from_json(filepath: Path) -> Optional[dict]:
@@ -44,12 +44,12 @@ def import_data_from_json(filepath: Path) -> Optional[dict]:
     Returns:
         any: will return data if JSON file exists, None if it doesn't.
     """
-    if filepath.exists():
-        with open(filepath) as file:
-            data = json.load(file)
-            return data
+    if not filepath.exists():
+        return None
 
-    return None
+    with open(filepath) as file:
+        data = json.load(file)
+        return data
 
 
 # -----Yaml--------------------------------------------------------------------
@@ -71,11 +71,11 @@ def export_data_to_yaml(
         overwrite(bool): to overwrite YAML file if it already exists in path.
             Defaults to False.
     """
-    if not path.exists() or overwrite:
-        with open(path, "w") as outfile:
-            yaml.dump(data, outfile, default_flow_style=False, sort_keys=False)
-    else:
+    if not overwrite and path.exists():
         return
+
+    with open(path, "w") as outfile:
+        yaml.dump(data, outfile, default_flow_style=False, sort_keys=False)
 
 
 def import_data_from_yaml(filepath: Path) -> Optional[dict]:
@@ -87,12 +87,12 @@ def import_data_from_yaml(filepath: Path) -> Optional[dict]:
     Returns:
         any: will return data if YAML file exists, None if it doesn't.
     """
-    if filepath.exists():
-        with open(filepath) as file:
-            data = yaml.safe_load(file)
-            return data
+    if not filepath.exists():
+        return None
 
-    return None
+    with open(filepath) as file:
+        data = yaml.safe_load(file)
+        return data
 
 
 # -----XML---------------------------------------------------------------------
@@ -114,13 +114,13 @@ def export_data_to_xml(
             Defaults to False.
         root_tag (str): the tag name for the root element. Defaults to "root".
     """
-    if not path.exists() or overwrite:
-        root = _dict_to_xml(data, root_tag)
-        tree = ElementTree.ElementTree(root)
-        ElementTree.indent(tree, space="    ")
-        tree.write(path, encoding="utf-8", xml_declaration=True)
-    else:
+    if not overwrite and path.exists():
         return
+
+    root = _dict_to_xml(data, root_tag)
+    tree = ElementTree.ElementTree(root)
+    ElementTree.indent(tree, space="    ")
+    tree.write(path, encoding="utf-8", xml_declaration=True)
 
 
 def _dict_to_xml(data: XML_PARSED_TYPE, tag: str) -> ElementTree.Element:
@@ -150,13 +150,13 @@ def import_data_from_xml(filepath: Path) -> Optional[dict]:
     Returns:
         any: will return data if XML file exists, None if it doesn't.
     """
-    if filepath.exists():
-        tree = ElementTree.parse(filepath)
-        root = tree.getroot()
-        data = _xml_to_dict(root)
-        return data
+    if not filepath.exists():
+        return None
 
-    return None
+    tree = ElementTree.parse(filepath)
+    root = tree.getroot()
+    data = _xml_to_dict(root)
+    return data
 
 
 def _xml_to_dict(element: ElementTree.Element) -> Union[dict, list, str]:
@@ -216,26 +216,26 @@ def export_data_to_csv(
             If not provided and data is list of dicts, uses dict keys.
             If not provided and data is list of lists, uses first row as headers.
     """
-    if not path.exists() or overwrite:
-        if not data:
-            return
-
-        with open(path, "w", newline="") as outfile:
-            if isinstance(data[0], dict):
-                # List of dicts
-                if fieldnames is None:
-                    fieldnames = list(data[0].keys())
-                writer = csv.DictWriter(outfile, fieldnames=fieldnames)
-                writer.writeheader()
-                writer.writerows(data)
-            else:
-                # List of lists
-                writer = csv.writer(outfile)
-                if fieldnames:
-                    writer.writerow(fieldnames)
-                writer.writerows(data)
-    else:
+    if not overwrite and path.exists():
         return
+
+    if not data:
+        return
+
+    with open(path, "w", newline="") as outfile:
+        if isinstance(data[0], dict):
+            # List of dicts
+            if fieldnames is None:
+                fieldnames = list(data[0].keys())
+            writer = csv.DictWriter(outfile, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(data)
+        else:
+            # List of lists
+            writer = csv.writer(outfile)
+            if fieldnames:
+                writer.writerow(fieldnames)
+            writer.writerows(data)
 
 
 def import_data_from_csv(
@@ -253,14 +253,14 @@ def import_data_from_csv(
         Optional[CSV_IMPORT_TYPE]: will return data if CSV file exists, None
             if it doesn't.
     """
-    if filepath.exists():
-        with open(filepath, newline="") as file:
-            if as_dict:
-                reader = csv.DictReader(file)
-                data = list(reader)
-            else:
-                reader = csv.reader(file)
-                data = list(reader)
-            return data
+    if not filepath.exists():
+        return None
 
-    return None
+    with open(filepath, newline="") as file:
+        if as_dict:
+            reader = csv.DictReader(file)
+            data = list(reader)
+        else:
+            reader = csv.reader(file)
+            data = list(reader)
+        return data
