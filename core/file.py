@@ -1,6 +1,7 @@
 import re
 from pathlib import Path
 from typing import Optional
+from typing import Union
 
 
 def create_structure(structure: dict, destination: Path) -> None:
@@ -43,22 +44,12 @@ def sort_path_list(path_objs: list[Path] = None) -> Optional[list[Path]]:
     if path_objs is None:
         return None
 
-    if len(path_objs) == 1:
-        return path_objs
+    def alphanum_key(path: Path) -> list[Union[int, str]]:
+        """Natural sort key that handles numbers in filenames."""
+        parts = re.split(r"([0-9]+)", path.as_posix())
+        return [int(part) if part.isdigit() else part for part in parts]
 
-    sort_strings = []
-    for p in path_objs:
-        sort_strings.append(p.as_posix())
-
-    convert = lambda text: int(text) if text.isdigit() else text
-    alphanum_key = lambda key: [convert(c) for c in re.split("([0-9]+)", key)]
-    sort_strings.sort(key=alphanum_key)
-
-    sorted_paths = []
-    for s in sort_strings:
-        sorted_paths.append(Path(s))
-
-    return sorted_paths
+    return sorted(path_objs, key=alphanum_key)
 
 
 def delete_files_in_directory(directory_path: Path) -> None:

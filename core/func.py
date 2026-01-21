@@ -1,13 +1,14 @@
 import functools
 import time
+from typing import Any
 from typing import Callable
 
 
-def timer(func: Callable):
+def timer(func: Callable) -> Callable:
     """Decorator to print the time it takes to execute a function."""
 
     @functools.wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args, **kwargs) -> Any:
         start = time.perf_counter()
         func(*args, **kwargs)
         print(f"Function took: {time.perf_counter() - start} seconds.")
@@ -15,7 +16,7 @@ def timer(func: Callable):
     return wrapper
 
 
-def print_func_name(func: Callable):
+def print_func_name(func: Callable) -> Callable:
     """
     Decorator to print the name of the decorated function.
     If multiple decorators are used, place this one at the bottom of the
@@ -24,7 +25,7 @@ def print_func_name(func: Callable):
     """
 
     @functools.wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args, **kwargs) -> Any:
         print(f"Func Name:: {func.__name__}")
         func(*args, **kwargs)
 
