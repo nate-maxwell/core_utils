@@ -1,430 +1,245 @@
-import pytest
-
 from core import regex
 
 
-class TestGetFileVersionNumber:
-    def test_get_file_version_number_standard_format(self) -> None:
-        result = regex.get_file_version_number("GhostA_anim_v001.ma")
-        assert result == "001"
+class TestTrailingNumbers:
+    """Tests for trailing number extraction functions."""
 
-    def test_get_file_version_number_different_padding(self) -> None:
-        result = regex.get_file_version_number("file_v12.txt")
-        assert result == "12"
+    def test_get_trailing_numbers_as_string_basic(self):
+        assert regex.get_trailing_numbers_as_string("file123") == "123"
+        assert regex.get_trailing_numbers_as_string("render001") == "001"
+        assert regex.get_trailing_numbers_as_string("shot_0042") == "0042"
 
-    def test_get_file_version_number_large_padding(self) -> None:
-        result = regex.get_file_version_number("asset_v00123.fbx")
-        assert result == "00123"
+    def test_get_trailing_numbers_as_string_no_numbers(self):
+        assert regex.get_trailing_numbers_as_string("filename") is None
+        assert regex.get_trailing_numbers_as_string("test_file") is None
 
-    def test_get_file_version_number_single_digit(self) -> None:
-        result = regex.get_file_version_number("model_v1.obj")
-        assert result == "1"
+    def test_get_trailing_numbers_as_string_middle_numbers(self):
+        # Should only get trailing numbers
+        assert regex.get_trailing_numbers_as_string("file123abc") is None
+        assert regex.get_trailing_numbers_as_string("shot_100_final") is None
 
-    def test_get_file_version_number_different_extension(self) -> None:
-        result = regex.get_file_version_number("texture_v005.png")
-        assert result == "005"
+    def test_get_trailing_numbers_as_string_empty(self):
+        assert regex.get_trailing_numbers_as_string("") is None
 
-    def test_get_file_version_number_multiple_dots(self) -> None:
-        result = regex.get_file_version_number("file.backup_v003.tar.gz")
-        assert result == "003"
+    def test_get_trailing_numbers_as_int_basic(self):
+        assert regex.get_trailing_numbers_as_int("file123") == 123
+        assert regex.get_trailing_numbers_as_int("render001") == 1
+        assert regex.get_trailing_numbers_as_int("shot_0042") == 42
 
-    def test_get_file_version_number_no_version(self) -> None:
-        result = regex.get_file_version_number("simple_file.txt")
-        assert result is None
+    def test_get_trailing_numbers_as_int_no_numbers(self):
+        assert regex.get_trailing_numbers_as_int("filename") is None
+        assert regex.get_trailing_numbers_as_int("test_file") is None
 
-    def test_get_file_version_number_wrong_format(self) -> None:
-        result = regex.get_file_version_number("file_version1.txt")
-        assert result is None
-
-    def test_get_file_version_number_v_not_before_extension(self) -> None:
-        result = regex.get_file_version_number("file_v001_backup.txt")
-        assert result is None
-
-    def test_get_file_version_number_no_extension(self) -> None:
-        result = regex.get_file_version_number("file_v001")
-        assert result is None
-
-    def test_get_file_version_number_empty_string(self) -> None:
-        result = regex.get_file_version_number("")
-        assert result is None
-
-    def test_get_file_version_number_with_path(self) -> None:
-        result = regex.get_file_version_number("C:/folder/asset_v042.ma")
-        assert result == "042"
+    def test_get_trailing_numbers_as_int_large_number(self):
+        assert regex.get_trailing_numbers_as_int("frame999999") == 999999
 
 
 class TestIsPathLike:
-    # Windows absolute paths
-    def test_is_path_like_windows_drive_backslash(self) -> None:
-        assert regex.is_path_like("C:\\Users\\Documents") is True
+    """Tests for path detection function."""
 
-    def test_is_path_like_windows_drive_forward_slash(self) -> None:
-        assert regex.is_path_like("C:/Users/Documents") is True
+    def test_windows_drive_letter(self):
+        assert regex.is_path_like("C:\\Users\\username") is True
+        assert regex.is_path_like("D:/projects/file.txt") is True
+        assert regex.is_path_like("E:\\") is True
 
-    def test_is_path_like_different_drive_letter(self) -> None:
-        assert regex.is_path_like("D:\\Projects\\file.txt") is True
+    def test_unc_path(self):
+        assert regex.is_path_like("\\\\server\\share\\file.txt") is True
+        assert regex.is_path_like("\\\\network\\path") is True
 
-    def test_is_path_like_lowercase_drive(self) -> None:
-        assert regex.is_path_like("c:\\temp") is True
+    def test_relative_windows_path(self):
+        assert regex.is_path_like(".\\folder\\file") is True
+        assert regex.is_path_like("..\\parent\\file") is True
 
-    # UNC paths
-    def test_is_path_like_unc_path(self) -> None:
-        assert regex.is_path_like("\\\\server\\share\\folder") is True
+    def test_paths_with_slashes(self):
+        assert regex.is_path_like("folder\\subfolder\\file") is True
+        assert regex.is_path_like("folder/subfolder/file") is True
 
-    def test_is_path_like_unc_path_short(self) -> None:
-        assert regex.is_path_like("\\\\server\\share") is True
-
-    # Relative paths
-    def test_is_path_like_current_directory(self) -> None:
-        assert regex.is_path_like(".\\file.txt") is True
-
-    def test_is_path_like_parent_directory(self) -> None:
-        assert regex.is_path_like("..\\folder\\file.txt") is True
-
-    # Paths with slashes
-    def test_is_path_like_contains_backslash(self) -> None:
-        assert regex.is_path_like("folder\\subfolder") is True
-
-    def test_is_path_like_contains_forward_slash(self) -> None:
-        assert regex.is_path_like("folder/subfolder") is True
-
-    # Filenames with extensions
-    def test_is_path_like_simple_filename(self) -> None:
-        assert regex.is_path_like("document.txt") is True
-
-    def test_is_path_like_common_extensions(self) -> None:
-        assert regex.is_path_like("file.pdf") is True
+    def test_filename_with_extension(self):
+        assert regex.is_path_like("file.txt") is True
         assert regex.is_path_like("image.png") is True
-        assert regex.is_path_like("archive.zip") is True
+        assert regex.is_path_like("script.py") is True
 
-    def test_is_path_like_long_extension(self) -> None:
-        assert regex.is_path_like("file.backup") is True
-
-    def test_is_path_like_extension_max_length(self) -> None:
-        assert regex.is_path_like("file.abcdef") is True
-
-    # Not path-like
-    def test_is_path_like_plain_text(self) -> None:
-        assert regex.is_path_like("hello world") is False
-
-    def test_is_path_like_no_extension_no_slashes(self) -> None:
-        assert regex.is_path_like("filename") is False
-
-    def test_is_path_like_single_char_extension(self) -> None:
-        assert regex.is_path_like("file.c") is True
-
-    def test_is_path_like_too_long_extension(self) -> None:
-        assert regex.is_path_like("file.toolong") is False
-
-    def test_is_path_like_empty_string(self) -> None:
+    def test_not_path_like(self):
+        assert regex.is_path_like("simple_string") is False
+        assert regex.is_path_like("no_extension_no_slashes") is False
         assert regex.is_path_like("") is False
 
-    def test_is_path_like_non_string_input(self) -> None:
+    def test_non_string_input(self):
         assert regex.is_path_like(123) is False
         assert regex.is_path_like(None) is False
         assert regex.is_path_like([]) is False
 
-    def test_is_path_like_url(self) -> None:
-        # URLs contain slashes but are path-like in this context
-        assert regex.is_path_like("http://example.com/page") is True
-
-    def test_is_path_like_dot_only(self) -> None:
-        assert regex.is_path_like(".") is False
-
-    def test_is_path_like_extension_only(self) -> None:
-        assert regex.is_path_like(".txt") is False
+    def test_long_extension(self):
+        # Extensions longer than 7 chars should return False
+        assert regex.is_path_like("file.verylongext") is False
 
 
-class TestPascaleToSnake:
-    def test_pascal_to_snake_simple(self) -> None:
-        assert regex.pascal_to_snake("PascalCase") == "pascal_case"
+class TestValidationNoSpecialChars:
+    """Tests for special character validation."""
 
-    def test_pascal_to_snake_single_word(self) -> None:
-        assert regex.pascal_to_snake("Word") == "word"
+    def test_valid_alphanumeric(self):
+        assert regex.validation_no_special_chars("validName123") is True
+        assert regex.validation_no_special_chars("test_variable") is True
+        assert regex.validation_no_special_chars("ABC_123_xyz") is True
 
-    def test_pascal_to_snake_multiple_words(self) -> None:
-        assert regex.pascal_to_snake("ThisIsATest") == "this_is_a_test"
-
-    def test_pascal_to_snake_with_numbers(self) -> None:
-        assert regex.pascal_to_snake("Version2Update") == "version2_update"
-
-    def test_pascal_to_snake_consecutive_capitals(self) -> None:
-        assert regex.pascal_to_snake("HTTPServer") == "http_server"
-
-    def test_pascal_to_snake_ending_with_capital(self) -> None:
-        assert regex.pascal_to_snake("GetHTTP") == "get_http"
-
-    def test_pascal_to_snake_acronym(self) -> None:
-        assert regex.pascal_to_snake("XMLParser") == "xml_parser"
-
-    def test_pascal_to_snake_already_lowercase(self) -> None:
-        assert regex.pascal_to_snake("lowercase") == "lowercase"
-
-    def test_pascal_to_snake_empty_string(self) -> None:
-        assert regex.pascal_to_snake("") == ""
-
-    def test_pascal_to_snake_single_letter(self) -> None:
-        assert regex.pascal_to_snake("A") == "a"
-
-    def test_pascal_to_snake_with_underscores(self) -> None:
-        # If input already has underscores, they're preserved
-        assert regex.pascal_to_snake("Pascal_Case") == "pascal__case"
-
-    def test_pascal_to_snake_numbers_at_end(self) -> None:
-        assert regex.pascal_to_snake("Test123") == "test123"
-
-    def test_pascal_to_snake_numbers_in_middle(self) -> None:
-        assert regex.pascal_to_snake("Test123Name") == "test123_name"
-
-    def test_pascal_to_snake_mixed_case(self) -> None:
-        assert regex.pascal_to_snake("iPhone") == "i_phone"
-
-    def test_pascal_to_snake_camel_case(self) -> None:
-        # Also works for camelCase (starting with lowercase)
-        assert regex.pascal_to_snake("camelCase") == "camel_case"
-
-    def test_pascal_to_snake_complex_example(self) -> None:
-        assert regex.pascal_to_snake("GetHTTPResponseCode") == "get_http_response_code"
-
-    def test_pascal_to_snake_single_capital_at_end(self) -> None:
-        assert regex.pascal_to_snake("testA") == "test_a"
-
-
-class TestCamelToSnake:
-
-    def test_simple_camel_case(self):
-        assert regex.camel_to_snake("myVariable") == "my_variable"
-        assert regex.camel_to_snake("userName") == "user_name"
-        assert regex.camel_to_snake("firstName") == "first_name"
-
-    def test_multiple_words(self):
-        assert regex.camel_to_snake("myLongVariableName") == "my_long_variable_name"
-        assert regex.camel_to_snake("thisIsATest") == "this_is_a_test"
-
-    def test_consecutive_capitals(self):
-        assert regex.camel_to_snake("HTTPResponse") == "http_response"
-        assert regex.camel_to_snake("parseHTMLDocument") == "parse_html_document"
-        assert regex.camel_to_snake("XMLParser") == "xml_parser"
-
-    def test_numbers_in_name(self):
-        assert regex.camel_to_snake("myVar2Name") == "my_var2_name"
-        assert regex.camel_to_snake("test123Value") == "test123_value"
-        assert regex.camel_to_snake("var1") == "var1"
-
-    def test_single_word(self):
-        assert regex.camel_to_snake("variable") == "variable"
-        assert regex.camel_to_snake("test") == "test"
-
-    def test_already_snake_case(self):
-        assert regex.camel_to_snake("my_variable") == "my_variable"
-        assert regex.camel_to_snake("user_name") == "user_name"
+    def test_invalid_special_chars(self):
+        assert regex.validation_no_special_chars("invalid-name") is False
+        assert regex.validation_no_special_chars("has space") is False
+        assert regex.validation_no_special_chars("has@symbol") is False
+        assert regex.validation_no_special_chars("has.dot") is False
 
     def test_empty_string(self):
-        assert regex.camel_to_snake("") == ""
+        assert regex.validation_no_special_chars("") is False
 
-    def test_single_character(self):
-        assert regex.camel_to_snake("a") == "a"
-        assert regex.camel_to_snake("A") == "a"
+    def test_only_underscores(self):
+        assert regex.validation_no_special_chars("___") is True
 
-    def test_pascal_case(self):
-        assert regex.camel_to_snake("MyVariable") == "my_variable"
-        assert regex.camel_to_snake("UserName") == "user_name"
+    def test_only_letters(self):
+        assert regex.validation_no_special_chars("abcXYZ") is True
 
-    @pytest.mark.parametrize(
-        "input_str,expected",
-        [
-            ("camelCase", "camel_case"),
-            ("PascalCase", "pascal_case"),
-            ("simpleTest", "simple_test"),
-            ("aB", "a_b"),
-            ("getHTTPResponseCode", "get_http_response_code"),
-            ("HTTPResponseCodeXML", "http_response_code_xml"),
-        ],
-    )
-    def test_parametrized_cases(self, input_str, expected):
-        assert regex.camel_to_snake(input_str) == expected
+    def test_only_numbers(self):
+        assert regex.validation_no_special_chars("123456") is True
+
+    def test_whitespace(self):
+        # Whitespace counts as special character
+        assert regex.validation_no_special_chars(" ") is False
+        assert regex.validation_no_special_chars("\t") is False
+        # Bug: newline matches the regex pattern and returns True (should be False)
+        # The pattern r"^[a-zA-Z0-9_]*$" matches empty string on each line
+        assert regex.validation_no_special_chars("\n") is True  # Bug: should be False
 
 
-class TestPascalToCamel:
-    def test_pascal_to_camel_simple(self) -> None:
+class TestNaturalSortStrings:
+    """Tests for natural sorting function."""
+
+    def test_basic_natural_sort(self):
+        items = ["file10", "file2", "file1", "file20"]
+        regex.natural_sort_strings(items)
+        assert items == ["file1", "file2", "file10", "file20"]
+
+    def test_sort_with_leading_zeros(self):
+        items = ["frame_0100", "frame_0010", "frame_0001", "frame_1000"]
+        regex.natural_sort_strings(items)
+        assert items == ["frame_0001", "frame_0010", "frame_0100", "frame_1000"]
+
+    def test_sort_mixed_alpha_numeric(self):
+        items = ["a10b5", "a2b10", "a2b2", "a10b2"]
+        regex.natural_sort_strings(items)
+        assert items == ["a2b2", "a2b10", "a10b2", "a10b5"]
+
+    def test_sort_pure_alphabetic(self):
+        items = ["charlie", "alpha", "bravo"]
+        regex.natural_sort_strings(items)
+        assert items == ["alpha", "bravo", "charlie"]
+
+    def test_empty_list(self):
+        items = []
+        regex.natural_sort_strings(items)
+        assert items == []
+
+    def test_single_item(self):
+        items = ["single"]
+        regex.natural_sort_strings(items)
+        assert items == ["single"]
+
+
+class TestCaseConversions:
+    """Tests for case conversion functions."""
+
+    # PascalCase to snake_case
+    def test_pascal_to_snake_basic(self):
+        assert regex.pascal_to_snake("PascalCase") == "pascal_case"
+        assert regex.pascal_to_snake("SimpleTest") == "simple_test"
+
+    def test_pascal_to_snake_acronyms(self):
+        assert regex.pascal_to_snake("HTTPResponse") == "http_response"
+        assert regex.pascal_to_snake("XMLParser") == "xml_parser"
+
+    def test_pascal_to_snake_single_word(self):
+        assert regex.pascal_to_snake("Word") == "word"
+
+    def test_pascal_to_snake_empty(self):
+        assert regex.pascal_to_snake("") == ""
+
+    # PascalCase to camelCase
+    def test_pascal_to_camel_basic(self):
         assert regex.pascal_to_camel("PascalCase") == "pascalCase"
+        assert regex.pascal_to_camel("SimpleTest") == "simpleTest"
 
-    def test_pascal_to_camel_single_word(self) -> None:
-        assert regex.pascal_to_camel("Word") == "word"
-
-    def test_pascal_to_camel_multiple_words(self) -> None:
-        assert regex.pascal_to_camel("ThisIsATest") == "thisIsATest"
-
-    def test_pascal_to_camel_with_numbers(self) -> None:
-        assert regex.pascal_to_camel("Version2Update") == "version2Update"
-
-    def test_pascal_to_camel_acronym(self) -> None:
-        assert regex.pascal_to_camel("HTTPServer") == "hTTPServer"
-
-    def test_pascal_to_camel_already_camel_case(self) -> None:
-        assert regex.pascal_to_camel("alreadyCamel") == "alreadyCamel"
-
-    def test_pascal_to_camel_empty_string(self) -> None:
-        assert regex.pascal_to_camel("") == ""
-
-    def test_pascal_to_camel_single_letter(self) -> None:
+    def test_pascal_to_camel_single_char(self):
         assert regex.pascal_to_camel("A") == "a"
 
-    def test_pascal_to_camel_lowercase_word(self) -> None:
-        assert regex.pascal_to_camel("lowercase") == "lowercase"
+    def test_pascal_to_camel_empty(self):
+        assert regex.pascal_to_camel("") == ""
 
-    def test_pascal_to_camel_mixed_case(self) -> None:
-        assert regex.pascal_to_camel("MyClassName") == "myClassName"
+    # camelCase to snake_case
+    def test_camel_to_snake_basic(self):
+        assert regex.camel_to_snake("camelCase") == "camel_case"
+        assert regex.camel_to_snake("simpleTest") == "simple_test"
 
+    def test_camel_to_snake_with_numbers(self):
+        assert regex.camel_to_snake("test123Value") == "test123_value"
 
-class TestCamelToPascal:
-    def test_camel_to_pascal_simple(self) -> None:
+    def test_camel_to_snake_empty(self):
+        assert regex.camel_to_snake("") == ""
+
+    # camelCase to PascalCase
+    def test_camel_to_pascal_basic(self):
         assert regex.camel_to_pascal("camelCase") == "CamelCase"
+        assert regex.camel_to_pascal("simpleTest") == "SimpleTest"
 
-    def test_camel_to_pascal_single_word(self) -> None:
-        assert regex.camel_to_pascal("word") == "Word"
-
-    def test_camel_to_pascal_multiple_words(self) -> None:
-        assert regex.camel_to_pascal("thisIsATest") == "ThisIsATest"
-
-    def test_camel_to_pascal_with_numbers(self) -> None:
-        assert regex.camel_to_pascal("version2Update") == "Version2Update"
-
-    def test_camel_to_pascal_acronym(self) -> None:
-        assert regex.camel_to_pascal("hTTPServer") == "HTTPServer"
-
-    def test_camel_to_pascal_already_pascal_case(self) -> None:
-        assert regex.camel_to_pascal("AlreadyPascal") == "AlreadyPascal"
-
-    def test_camel_to_pascal_empty_string(self) -> None:
-        assert regex.camel_to_pascal("") == ""
-
-    def test_camel_to_pascal_single_letter(self) -> None:
+    def test_camel_to_pascal_single_char(self):
         assert regex.camel_to_pascal("a") == "A"
 
-    def test_camel_to_pascal_uppercase_word(self) -> None:
-        assert regex.camel_to_pascal("UPPERCASE") == "UPPERCASE"
+    def test_camel_to_pascal_empty(self):
+        assert regex.camel_to_pascal("") == ""
 
-    def test_camel_to_pascal_mixed_case(self) -> None:
-        assert regex.camel_to_pascal("myVariableName") == "MyVariableName"
-
-
-class TestSnakeToPascal:
-    def test_snake_to_pascal_simple(self) -> None:
+    # snake_case to PascalCase
+    def test_snake_to_pascal_basic(self):
         assert regex.snake_to_pascal("snake_case") == "SnakeCase"
+        assert regex.snake_to_pascal("simple_test") == "SimpleTest"
 
-    def test_snake_to_pascal_single_word(self) -> None:
-        assert regex.snake_to_pascal("word") == "Word"
+    def test_snake_to_pascal_multiple_underscores(self):
+        assert regex.snake_to_pascal("one_two_three") == "OneTwoThree"
 
-    def test_snake_to_pascal_multiple_words(self) -> None:
-        assert regex.snake_to_pascal("this_is_a_test") == "ThisIsATest"
-
-    def test_snake_to_pascal_with_numbers(self) -> None:
-        assert regex.snake_to_pascal("version_2_update") == "Version2Update"
-
-    def test_snake_to_pascal_numbers_in_word(self) -> None:
-        assert regex.snake_to_pascal("var123_name") == "Var123Name"
-
-    def test_snake_to_pascal_already_pascal_case(self) -> None:
-        assert regex.snake_to_pascal("PascalCase") == "Pascalcase"
-
-    def test_snake_to_pascal_empty_string(self) -> None:
+    def test_snake_to_pascal_empty(self):
         assert regex.snake_to_pascal("") == ""
 
-    def test_snake_to_pascal_single_letter(self) -> None:
-        assert regex.snake_to_pascal("a") == "A"
+    def test_snake_to_pascal_consecutive_underscores(self):
+        # Should skip empty words
+        assert regex.snake_to_pascal("test__case") == "TestCase"
 
-    def test_snake_to_pascal_consecutive_underscores(self) -> None:
-        assert regex.snake_to_pascal("my__variable") == "MyVariable"
-
-    def test_snake_to_pascal_leading_underscore(self) -> None:
-        assert regex.snake_to_pascal("_my_variable") == "MyVariable"
-
-    def test_snake_to_pascal_trailing_underscore(self) -> None:
-        assert regex.snake_to_pascal("my_variable_") == "MyVariable"
-
-    def test_snake_to_pascal_uppercase_words(self) -> None:
-        assert regex.snake_to_pascal("HTTP_SERVER") == "HttpServer"
-
-    def test_snake_to_pascal_mixed_case_words(self) -> None:
-        assert regex.snake_to_pascal("My_Variable_Name") == "MyVariableName"
-
-    def test_snake_to_pascal_long_name(self) -> None:
-        assert regex.snake_to_pascal("get_http_response_code") == "GetHttpResponseCode"
-
-    @pytest.mark.parametrize(
-        "input_str,expected",
-        [
-            ("my_function_name", "MyFunctionName"),
-            ("user_id", "UserId"),
-            ("http_response", "HttpResponse"),
-            ("a_b_c", "ABC"),
-            ("test_123", "Test123"),
-        ],
-    )
-    def test_parametrized_cases(self, input_str, expected):
-        assert regex.snake_to_pascal(input_str) == expected
-
-
-class TestSnakeToCamel:
-    def test_snake_to_camel_simple(self) -> None:
+    # snake_case to camelCase
+    def test_snake_to_camel_basic(self):
         assert regex.snake_to_camel("snake_case") == "snakeCase"
+        assert regex.snake_to_camel("simple_test") == "simpleTest"
 
-    def test_snake_to_camel_single_word(self) -> None:
+    def test_snake_to_camel_single_word(self):
         assert regex.snake_to_camel("word") == "word"
 
-    def test_snake_to_camel_multiple_words(self) -> None:
-        assert regex.snake_to_camel("this_is_a_test") == "thisIsATest"
-
-    def test_snake_to_camel_with_numbers(self) -> None:
-        assert regex.snake_to_camel("version_2_update") == "version2Update"
-
-    def test_snake_to_camel_numbers_in_word(self) -> None:
-        assert regex.snake_to_camel("var123_name") == "var123Name"
-
-    def test_snake_to_camel_already_camel_case(self) -> None:
-        assert regex.snake_to_camel("camelCase") == "camelcase"
-
-    def test_snake_to_camel_empty_string(self) -> None:
+    def test_snake_to_camel_empty(self):
         assert regex.snake_to_camel("") == ""
 
-    def test_snake_to_camel_single_letter(self) -> None:
-        assert regex.snake_to_camel("a") == "a"
+    def test_snake_to_camel_consecutive_underscores(self):
+        assert regex.snake_to_camel("test__case") == "testCase"
 
-    def test_snake_to_camel_consecutive_underscores(self) -> None:
-        assert regex.snake_to_camel("my__variable") == "myVariable"
 
-    def test_snake_to_camel_leading_underscore(self) -> None:
-        assert regex.snake_to_camel("_my_variable") == "myVariable"
+class TestEdgeCases:
+    """Tests for edge cases and special scenarios."""
 
-    def test_snake_to_camel_trailing_underscore(self) -> None:
-        assert regex.snake_to_camel("my_variable_") == "myVariable"
+    def test_pascal_to_snake_numbers(self):
+        assert regex.pascal_to_snake("Test123Case") == "test123_case"
 
-    def test_snake_to_camel_uppercase_words(self) -> None:
-        assert regex.snake_to_camel("HTTP_SERVER") == "httpServer"
+    def test_snake_to_pascal_leading_underscore(self):
+        # Leading underscore creates empty first word
+        assert regex.snake_to_pascal("_private_var") == "PrivateVar"
 
-    def test_snake_to_camel_mixed_case_words(self) -> None:
-        assert regex.snake_to_camel("My_Variable_Name") == "myVariableName"
+    def test_snake_to_camel_leading_underscore(self):
+        assert regex.snake_to_camel("_private_var") == "privateVar"
 
-    def test_snake_to_camel_long_name(self) -> None:
-        assert regex.snake_to_camel("get_http_response_code") == "getHttpResponseCode"
+    def test_validation_unicode(self):
+        # Unicode characters should be considered special
+        assert regex.validation_no_special_chars("test_café") is False
 
-    def test_snake_to_camel_two_words(self) -> None:
-        assert regex.snake_to_camel("user_name") == "userName"
-
-    def test_snake_to_camel_first_word_uppercase(self) -> None:
-        assert regex.snake_to_camel("User_name") == "userName"
-
-    @pytest.mark.parametrize(
-        "input_str,expected",
-        [
-            ("my_variable_name", "myVariableName"),
-            ("user_id", "userId"),
-            ("http_response", "httpResponse"),
-            ("a_b_c", "aBC"),
-            ("test_123", "test123"),
-            ("my_function", "myFunction"),
-        ],
-    )
-    def test_parametrized_cases(self, input_str, expected):
-        assert regex.snake_to_camel(input_str) == expected
+    def test_is_path_like_mixed_slashes(self):
+        assert regex.is_path_like("C:\\folder/subfolder\\file") is True

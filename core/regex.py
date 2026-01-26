@@ -9,24 +9,38 @@ import re
 from typing import Optional
 
 
-def get_file_version_number(file_name: str) -> Optional[str]:
+def get_trailing_numbers_as_string(s: str) -> Optional[str]:
     """
-    Gets the integer version number of a file whose name
-    ends with the standard version suffix: '_v###.ext',
-    if it exists, otherwise returns None.
-
-    Example file name: 'GhostA_anim_v001.ma'
-
-    The suffix's number padding can be any length.
+    Gets a string of digits from the end of a string.
+    String should not contain file extension.
 
     Args:
-        file_name (str): The file name to search.
+        s (str): The string the search.
 
     Returns:
-        int: The integer version number.
+        Optional[str]: The string og digits at the end of the string if one\
+            exists. Returns None if no digits exists.
     """
-    temp = re.search(r"_v(\d+)\..*$", file_name)
-    return temp.group(1) if temp else None
+    temp = re.search(r"\d+$", s)
+    return str(temp.group()) if temp else None
+
+
+def get_trailing_numbers_as_int(s: str) -> Optional[int]:
+    """
+    Gets the integer from the end of a string.
+    String should not contain file extension.
+
+    Args:
+        s (str): The string the search.
+
+    Returns:
+        Optional[int]: The integer at the end of the string if one exists.
+        Returns None if no integer exists.
+    """
+    try:
+        return int(get_trailing_numbers_as_string(s))
+    except (TypeError, ValueError):
+        return None
 
 
 def is_path_like(value: str) -> bool:
@@ -64,6 +78,41 @@ def is_path_like(value: str) -> bool:
         return True
 
     return False
+
+
+def validation_no_special_chars(string: str) -> bool:
+    """
+    Checks a string to see if it contains non-alpha-numeric or non-underscore characters.
+    Will return True if the string contains no special characters. Will return False
+    if the string contains special characters or is an empty string.
+
+    Args:
+        string (str): The string to check against.
+
+    Returns:
+        bool: Whether the string contains no special characters.
+
+    Notes:
+        A common gotcha is that whitespace counts as a special character.
+    """
+    m = re.match(r"^[a-zA-Z0-9_]*$", string)
+    if m and string != "":
+        return True
+    else:
+        return False
+
+
+def natural_sort_strings(items: list[str]):
+    """
+    Sort the given list in the way that humans expect.
+
+    Args:
+        list[str]: The list of strings to sort.
+    """
+    # Copied from studio library
+    convert = lambda text: int(text) if text.isdigit() else text
+    alphanum_key = lambda key: [convert(c) for c in re.split(r"([0-9]+)", key)]
+    items.sort(key=alphanum_key)
 
 
 # -----Casing------------------------------------------------------------------
