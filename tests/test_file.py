@@ -1,11 +1,9 @@
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 import pytest
 
 from core import file
-
-
-# -----create_structure Tests--------------------------------------------------
 
 
 class TestCreateStructure:
@@ -86,9 +84,6 @@ class TestCreateStructure:
 
         assert destination.exists()
         assert (destination / "folder").exists()
-
-
-# -----sort_path_list Tests----------------------------------------------------
 
 
 class TestSortPathList:
@@ -195,9 +190,6 @@ class TestSortPathList:
         assert result[0] == tmp_path / "file1.txt"
         assert result[1] == tmp_path / "file2.txt"
         assert result[2] == tmp_path / "file3.txt"
-
-
-# -----delete_files_in_directory Tests-----------------------------------------
 
 
 class TestDeleteFilesInDirectory:
@@ -319,9 +311,6 @@ class TestDeleteFilesInDirectory:
         assert captured.out.count("All files deleted successfully.") == 2
 
 
-# -----Integration Tests-------------------------------------------------------
-
-
 class TestIntegration:
     def test_create_and_delete_workflow(self, tmp_path):
         # Create structure
@@ -353,3 +342,209 @@ class TestIntegration:
         assert sorted_paths[0].name == "folder1"
         assert sorted_paths[1].name == "folder2"
         assert sorted_paths[2].name == "folder10"
+
+
+class TestVersionFunctions:
+    """Unit tests for version file management functions."""
+
+    @pytest.fixture
+    def temp_dir(self):
+        """Create a temporary directory for testing."""
+        with TemporaryDirectory() as tmpdir:
+            yield Path(tmpdir)
+
+    @pytest.fixture
+    def versioned_files(self, temp_dir):
+        """Create a set of versioned test files."""
+        files = [
+            "shot_v001.exr",
+            "shot_v002.exr",
+            "shot_v005.exr",
+            "render_001.png",
+            "render_002.png",
+            "render_010.png",
+            "file_md_001.txt",
+            "file_md_002.txt",
+            "unversioned.exr",
+            "other.png",
+        ]
+        for filename in files:
+            (temp_dir / filename).touch()
+        return temp_dir
+
+    # Tests for file.get_latest_version_file_from_dir
+
+    def test_get_latest_basic(self, versioned_files):
+        """Test getting latest version with basic extension filter."""
+        result = file.get_latest_version_file_from_dir(versioned_files, ".exr")
+        assert result.name == "shot_v005.exr"
+
+    def test_get_latest_with_substring(self, versioned_files):
+        """Test getting latest version with substring filter."""
+        result = file.get_latest_version_file_from_dir(
+            versioned_files, ".txt", substring="md"
+        )
+        assert result.name == "file_md_002.txt"
+
+    def test_get_latest_extension_without_dot(self, versioned_files):
+        """Test extension normalization (without leading dot)."""
+        result = file.get_latest_version_file_from_dir(versioned_files, "png")
+        assert result.name == "render_010.png"
+
+    def test_get_latest_no_matches(self, versioned_files):
+        """Test returns None when no matching files found."""
+        result = file.get_latest_version_file_from_dir(versioned_files, ".jpg")
+        assert result is None
+
+    def test_get_latest_no_versioned_files(self, temp_dir):
+        """Test returns None when files exist but none are versioned."""
+        (temp_dir / "unversioned.exr").touch()
+        (temp_dir / "another.exr").touch()
+        result = file.get_latest_version_file_from_dir(temp_dir, ".exr")
+        assert result is None
+
+    def test_get_latest_empty_directory(self, temp_dir):
+        """Test returns None for empty directory."""
+        result = file.get_latest_version_file_from_dir(temp_dir, ".exr")
+        assert result is None
+
+    def test_get_latest_substring_no_match(self, versioned_files):
+        """Test returns None when substring doesn't match any files."""
+        result = file.get_latest_version_file_from_dir(
+            versioned_files, ".exr", substring="nonexistent"
+        )
+        assert result is None
+
+    def test_get_latest_multidigit_versions(self, temp_dir):
+        """Test handles multi-digit version numbers correctly."""
+        for i in [1, 5, 10, 99, 100]:
+            (temp_dir / f"file_{i:03d}.txt").touch()
+        result = file.get_latest_version_file_from_dir(temp_dir, ".txt")
+        assert result.name == "file_100.txt"
+
+    def test_get_latest_ignores_directories(self, temp_dir):
+        """Test ignores directories, only processes files."""
+        (temp_dir / "shot_v001.exr").touch()
+        (temp_dir / "shot_v999").mkdir()  # Directory with higher version
+        result = file.get_latest_version_file_from_dir(temp_dir, ".exr")
+        assert result.name == "shot_v001.exr"
+
+    # Tests for file.get_next_version_from_dir
+
+    def test_get_next_basic(self, versioned_files):
+        """Test getting next version number with basic filter."""
+        result = file.get_next_version_from_dir(versioned_files, ".exr")
+        assert result == "006"
+
+    def test_get_next_with_substring(self, versioned_files):
+        """Test getting next version with substring filter."""
+        result = file.get_next_version_from_dir(versioned_files, ".txt", substring="md")
+        assert result == "003"
+
+    def test_get_next_extension_without_dot(self, versioned_files):
+        """Test extension normalization (without leading dot)."""
+        result = file.get_next_version_from_dir(versioned_files, "png")
+        assert result == "011"
+
+    def test_get_next_custom_padding(self, temp_dir):
+        """Test custom padding length."""
+        # Create files with 5-digit versions to match the padding
+        (temp_dir / "shot_v00001.exr").touch()
+        (temp_dir / "shot_v00002.exr").touch()
+        (temp_dir / "shot_v00005.exr").touch()
+
+        result = file.get_next_version_from_dir(temp_dir, ".exr", padding=5)
+        assert result == "00006"
+
+    def test_get_next_custom_padding_no_match(self, versioned_files):
+        """Test custom padding returns '00001' when no files match padding length."""
+        # versioned_files has 3-digit versions, asking for 5-digit padding
+        result = file.get_next_version_from_dir(versioned_files, ".exr", padding=5)
+        assert result == "00001"
+
+    def test_get_next_custom_padding_with_match(self, temp_dir):
+        """Test custom padding with matching version files."""
+        (temp_dir / "shot_v00001.exr").touch()
+        (temp_dir / "shot_v00005.exr").touch()
+
+        result = file.get_next_version_from_dir(temp_dir, ".exr", padding=5)
+        assert result == "00006"
+
+    def test_get_next_no_matches(self, versioned_files):
+        """Test returns '001' when no matching files found."""
+        result = file.get_next_version_from_dir(versioned_files, ".jpg")
+        assert result == "001"
+
+    def test_get_next_empty_directory(self, temp_dir):
+        """Test returns '001' for empty directory."""
+        result = file.get_next_version_from_dir(temp_dir, ".exr")
+        assert result == "001"
+
+    def test_get_next_nonexistent_directory(self):
+        """Test returns '001' for non-existent directory."""
+        result = file.get_next_version_from_dir(Path("/nonexistent"), ".exr")
+        assert result == "001"
+
+    def test_get_next_none_filepath(self):
+        """Test returns '001' when filepath is None."""
+        result = file.get_next_version_from_dir(None, ".exr")
+        assert result == "001"
+
+    def test_get_next_substring_no_match(self, versioned_files):
+        """Test returns '001' when substring doesn't match any files."""
+        result = file.get_next_version_from_dir(
+            versioned_files, ".exr", substring="nonexistent"
+        )
+        assert result == "001"
+
+    def test_get_next_padding_2(self, temp_dir):
+        """Test with 2-digit padding."""
+        (temp_dir / "file_01.txt").touch()
+        (temp_dir / "file_05.txt").touch()
+        result = file.get_next_version_from_dir(temp_dir, ".txt", padding=2)
+        assert result == "06"
+
+    def test_get_next_large_version_numbers(self, temp_dir):
+        """Test handles large version numbers correctly."""
+        (temp_dir / "file_998.txt").touch()
+        (temp_dir / "file_999.txt").touch()
+        result = file.get_next_version_from_dir(temp_dir, ".txt")
+        assert result == "1000"
+
+    def test_get_next_ignores_non_files(self, temp_dir):
+        """Test ignores directories and only processes files."""
+        (temp_dir / "shot_001.exr").touch()
+        (temp_dir / "shot_999").mkdir()  # Directory should be ignored
+        result = file.get_next_version_from_dir(temp_dir, ".exr")
+        assert result == "002"
+
+    def test_get_next_requires_exact_padding(self, temp_dir):
+        """Test only recognizes versions with exact padding length."""
+        (temp_dir / "file_1.txt").touch()  # Only 1 digit
+        (temp_dir / "file_12.txt").touch()  # Only 2 digits
+        (temp_dir / "file_123.txt").touch()  # Exactly 3 digits
+        result = file.get_next_version_from_dir(temp_dir, ".txt", padding=3)
+        assert result == "124"  # Only counted file_123.txt
+
+    # Integration tests
+
+    def test_get_latest_then_next(self, versioned_files):
+        """Test workflow: get latest, then get next version."""
+        latest = file.get_latest_version_file_from_dir(versioned_files, ".exr")
+        assert latest.name == "shot_v005.exr"
+
+        next_ver = file.get_next_version_from_dir(versioned_files, ".exr")
+        assert next_ver == "006"
+
+    def test_both_functions_consistent_filtering(self, versioned_files):
+        """Test both functions filter the same set of files."""
+        # Both should see the same "md" files
+        latest = file.get_latest_version_file_from_dir(
+            versioned_files, ".txt", substring="md"
+        )
+        next_ver = file.get_next_version_from_dir(
+            versioned_files, ".txt", substring="md"
+        )
+
+        assert latest.name == "file_md_002.txt"
+        assert next_ver == "003"
