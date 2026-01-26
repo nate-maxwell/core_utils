@@ -1,9 +1,3 @@
-"""
-Pipeline Regex Utility Library
-
-A collection of regex and other substring parsing utility functions.
-"""
-
 import os
 import re
 from typing import Optional
