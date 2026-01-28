@@ -12,7 +12,7 @@ def get_trailing_numbers_as_string(s: str) -> Optional[str]:
         s (str): The string the search.
 
     Returns:
-        Optional[str]: The string og digits at the end of the string if one\
+        Optional[str]: The string og digits at the end of the string if one
             exists. Returns None if no digits exists.
     """
     temp = re.search(r"\d+$", s)
@@ -76,16 +76,15 @@ def is_path_like(value: str) -> bool:
 
 def validation_no_special_chars(string: str) -> bool:
     """
-    Checks a string to see if it contains non-alpha-numeric or non-underscore characters.
-    Will return True if the string contains no special characters. Will return False
-    if the string contains special characters or is an empty string.
+    Checks a string to see if it contains non-alpha-numeric or non-underscore
+    characters.
+    Will return True if the string contains no special characters. Will return
+    False if the string contains special characters or is an empty string.
 
     Args:
         string (str): The string to check against.
-
     Returns:
         bool: Whether the string contains no special characters.
-
     Notes:
         A common gotcha is that whitespace counts as a special character.
     """
