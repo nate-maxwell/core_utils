@@ -110,7 +110,7 @@ def get_latest_version_file_from_dir(
             else:
                 break
 
-        if version_str:  # Only include files with version numbers
+        if version_str:
             versioned_files.append((file, int(version_str)))
 
     if versioned_files:
