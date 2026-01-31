@@ -1,6 +1,6 @@
 import pytest
 
-from core import size
+from core_utils import size
 
 
 # -----convert_size Tests------------------------------------------------------

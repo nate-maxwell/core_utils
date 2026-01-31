@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import pytest
 
-from core import text
+from core_utils import text
 
 
 # -----print_center_header Tests-----------------------------------------------

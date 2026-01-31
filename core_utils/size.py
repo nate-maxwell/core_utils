@@ -47,7 +47,7 @@ class ScaleHandler(object):
         unit type.
 
     Example:
-        >>> from core import size
+        >>> from core_utils import size
         >>> scale = size.ScaleHandler(CM, 100.0)
         >>> scale.convert_to_unit(size.M)
         >>> print(scale.length)

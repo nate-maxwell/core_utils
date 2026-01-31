@@ -1,4 +1,4 @@
-from core import regex
+from core_utils import regex
 
 
 class TestTrailingNumbers:

@@ -5,7 +5,7 @@ from xml.etree import ElementTree
 import pytest
 import yaml
 
-from core import structured
+from core_utils import structured
 
 
 # -----JSON Tests--------------------------------------------------------------

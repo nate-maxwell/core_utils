@@ -3,7 +3,7 @@ from tempfile import TemporaryDirectory
 
 import pytest
 
-from core import file
+from core_utils import file
 
 
 class TestCreateStructure:

@@ -2,7 +2,7 @@ import time
 
 import pytest
 
-from core import func
+from core_utils import func
 
 
 # -----timer Tests-------------------------------------------------------------

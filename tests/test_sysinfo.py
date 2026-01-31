@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 from unittest.mock import patch
 
-from core import sysinfo
+from core_utils import sysinfo
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -12,19 +12,19 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 
 class TestGetDate:
-    @patch("core.sysinfo.datetime")
+    @patch("core_utils.sysinfo.datetime")
     def test_get_date_format(self, mock_datetime):
         mock_datetime.date.today.return_value = datetime.date(2024, 3, 15)
         result = sysinfo.get_date()
         assert result == "03-15-2024"
 
-    @patch("core.sysinfo.datetime")
+    @patch("core_utils.sysinfo.datetime")
     def test_get_date_single_digit_month(self, mock_datetime):
         mock_datetime.date.today.return_value = datetime.date(2024, 1, 5)
         result = sysinfo.get_date()
         assert result == "01-05-2024"
 
-    @patch("core.sysinfo.datetime")
+    @patch("core_utils.sysinfo.datetime")
     def test_get_date_december(self, mock_datetime):
         mock_datetime.date.today.return_value = datetime.date(2024, 12, 31)
         result = sysinfo.get_date()
@@ -48,28 +48,28 @@ class TestGetDate:
 
 
 class TestGetTime:
-    @patch("core.sysinfo.datetime.datetime")
+    @patch("core_utils.sysinfo.datetime.datetime")
     def test_get_time_format(self, mock_datetime):
         mock_time = datetime.time(14, 30, 45, 123456)
         mock_datetime.now.return_value.time.return_value = mock_time
         result = sysinfo.get_time()
         assert result == "14:30:45.12"
 
-    @patch("core.sysinfo.datetime.datetime")
+    @patch("core_utils.sysinfo.datetime.datetime")
     def test_get_time_morning(self, mock_datetime):
         mock_time = datetime.time(9, 5, 3, 500000)
         mock_datetime.now.return_value.time.return_value = mock_time
         result = sysinfo.get_time()
         assert result == "09:05:03.50"
 
-    @patch("core.sysinfo.datetime.datetime")
+    @patch("core_utils.sysinfo.datetime.datetime")
     def test_get_time_midnight(self, mock_datetime):
         mock_time = datetime.time(0, 0, 0, 100000)
         mock_datetime.now.return_value.time.return_value = mock_time
         result = sysinfo.get_time()
         assert result == "00:00:00.10"
 
-    @patch("core.sysinfo.datetime.datetime")
+    @patch("core_utils.sysinfo.datetime.datetime")
     def test_get_time_truncates_microseconds(self, mock_datetime):
         mock_time = datetime.time(12, 0, 0, 999999)
         mock_datetime.now.return_value.time.return_value = mock_time
@@ -99,9 +99,9 @@ class TestGetTime:
 
 
 class TestGetOSInfo:
-    @patch("core.sysinfo.platform.system")
-    @patch("core.sysinfo.platform.release")
-    @patch("core.sysinfo.platform.version")
+    @patch("core_utils.sysinfo.platform.system")
+    @patch("core_utils.sysinfo.platform.release")
+    @patch("core_utils.sysinfo.platform.version")
     def test_get_os_info_windows(self, mock_version, mock_release, mock_system):
         mock_system.return_value = "Windows"
         mock_release.return_value = "10"
@@ -111,9 +111,9 @@ class TestGetOSInfo:
 
         assert result == ("Windows", "10", "10.0.19041")
 
-    @patch("core.sysinfo.platform.system")
-    @patch("core.sysinfo.platform.release")
-    @patch("core.sysinfo.platform.version")
+    @patch("core_utils.sysinfo.platform.system")
+    @patch("core_utils.sysinfo.platform.release")
+    @patch("core_utils.sysinfo.platform.version")
     def test_get_os_info_linux(self, mock_version, mock_release, mock_system):
         mock_system.return_value = "Linux"
         mock_release.return_value = "5.15.0"
@@ -123,9 +123,9 @@ class TestGetOSInfo:
 
         assert result == ("Linux", "5.15.0", "#1 SMP")
 
-    @patch("core.sysinfo.platform.system")
-    @patch("core.sysinfo.platform.release")
-    @patch("core.sysinfo.platform.version")
+    @patch("core_utils.sysinfo.platform.system")
+    @patch("core_utils.sysinfo.platform.release")
+    @patch("core_utils.sysinfo.platform.version")
     def test_get_os_info_macos(self, mock_version, mock_release, mock_system):
         mock_system.return_value = "Darwin"
         mock_release.return_value = "21.6.0"
@@ -144,9 +144,9 @@ class TestGetOSInfo:
         result = sysinfo.get_os_info()
         assert all(isinstance(item, str) for item in result)
 
-    @patch("core.sysinfo.platform.system")
-    @patch("core.sysinfo.platform.release")
-    @patch("core.sysinfo.platform.version")
+    @patch("core_utils.sysinfo.platform.system")
+    @patch("core_utils.sysinfo.platform.release")
+    @patch("core_utils.sysinfo.platform.version")
     def test_get_os_info_calls_platform_functions(
         self, mock_version, mock_release, mock_system
     ):
