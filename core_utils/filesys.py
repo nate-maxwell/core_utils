@@ -1,7 +1,77 @@
+import os
 import re
 from pathlib import Path
 from typing import Optional
 from typing import Union
+
+
+_windows_reserved_names = {
+    "CON",
+    "PRN",
+    "AUX",
+    "NUL",
+    "COM1",
+    "COM2",
+    "COM3",
+    "COM4",
+    "COM5",
+    "COM6",
+    "COM7",
+    "COM8",
+    "COM9",
+    "LPT1",
+    "LPT2",
+    "LPT3",
+    "LPT4",
+    "LPT5",
+    "LPT6",
+    "LPT7",
+    "LPT8",
+    "LPT9",
+}
+
+
+def can_create_path(path: Union[Path, str]) -> bool:
+    """
+    Check if a path can be created on Windows.
+
+    Args:
+        path (str | Path): The path to validate.
+    Returns:
+        bool: True if the path can be created, False otherwise.
+    """
+    path = Path(path).resolve()
+
+    # Check for invalid Windows path characters
+    invalid_chars = '<>:"|?*'
+    path_str = str(path)
+
+    if len(path_str) > 1 and path_str[1] == ":":  # Skip the drive letters
+        check_str = path_str[2:]
+    else:
+        check_str = path_str
+
+    if any(char in check_str for char in invalid_chars):
+        return False
+
+    for part in path.parts:
+        name_without_ext = part.split(".")[0].upper()
+        if name_without_ext in _windows_reserved_names:
+            return False
+
+    if len(path_str) > 260 and not path_str.startswith("\\\\?\\"):
+        return False
+
+    # Walk up the path until we find an existing parent - checks for existing
+    # drive letters or valid network paths.
+    current = path
+    while not current.exists():
+        parent = current.parent
+        if current == parent:
+            return False
+        current = parent
+
+    return os.access(current, os.W_OK)  # Check if parent has write permissions
 
 
 def create_structure(structure: dict, destination: Path) -> None:
