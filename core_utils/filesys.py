@@ -41,8 +41,6 @@ def can_create_path(path: Union[Path, str]) -> bool:
         bool: True if the path can be created, False otherwise.
     """
     path = Path(path).resolve()
-
-    # Check for invalid Windows path characters
     invalid_chars = '<>:"|?*'
     path_str = str(path)
 
