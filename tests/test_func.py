@@ -1,5 +1,6 @@
 import gc
 import time
+import threading
 
 import pytest
 
@@ -422,3 +423,157 @@ class TestEdgeCases:
         captured = capsys.readouterr()
 
         assert "Function took:" in captured.out
+
+
+# -----Once Tests--------------------------------------------------------------
+
+
+class TestOnce:
+    def test_runs_exactly_once(self) -> None:
+        call_count = [0]
+
+        @func.once
+        def fn() -> None:
+            call_count[0] += 1
+
+        fn()
+        fn()
+        fn()
+        assert call_count[0] == 1
+
+    def test_subsequent_calls_are_silently_ignored(self) -> None:
+        log = []
+
+        @func.once
+        def fn() -> None:
+            log.append("ran")
+
+        for _ in range(10):
+            fn()
+        assert log == ["ran"]
+
+    def test_return_value_is_always_none(self) -> None:
+        @func.once
+        def fn() -> None:
+            return 42  # type: ignore[return-value]
+
+        assert fn() is None
+        assert fn() is None
+
+    def test_preserves_function_name(self) -> None:
+        @func.once
+        def my_setup_func() -> None:
+            pass
+
+        assert my_setup_func.__name__ == "my_setup_func"
+
+    def test_preserves_docstring(self) -> None:
+        @func.once
+        def my_setup_func() -> None:
+            """Registers all pipeline plugins."""
+            pass
+
+        assert my_setup_func.__doc__ == "Registers all pipeline plugins."
+
+    def test_each_decorated_function_is_independent(self) -> None:
+        counts = [0, 0]
+
+        @func.once
+        def fn_a() -> None:
+            counts[0] += 1
+
+        @func.once
+        def fn_b() -> None:
+            counts[1] += 1
+
+        fn_a()
+        fn_a()
+        fn_b()
+        fn_b()
+        fn_b()
+        assert counts == [1, 1]
+
+    def test_does_not_run_before_first_call(self) -> None:
+        ran = [False]
+
+        @func.once
+        def fn() -> None:
+            ran[0] = True
+
+        assert ran[0] is False
+        fn()
+        assert ran[0] is True
+
+
+class TestOnceExceptions:
+    def test_exception_propagates_to_caller(self) -> None:
+        @func.once
+        def fn() -> None:
+            raise ValueError("setup failed")
+
+        with pytest.raises(ValueError, match="setup failed"):
+            fn()
+
+    def test_does_not_run_again_after_exception(self) -> None:
+        """Once the function raises, subsequent calls are still ignored.
+        This is intentional: if setup is broken, calling it again won't fix it,
+        and silently swallowing repeated failures is safer than retrying
+        indefinitely in a pipeline context.
+        """
+        call_count = [0]
+
+        @func.once
+        def fn() -> None:
+            call_count[0] += 1
+            raise RuntimeError("boom")
+
+        with pytest.raises(RuntimeError):
+            fn()
+
+        fn()  # should be ignored
+        fn()  # should be ignored
+        assert call_count[0] == 1
+
+
+class TestOnceThreadSafety:
+    def test_only_runs_once_under_concurrent_calls(self) -> None:
+        call_count = [0]
+        n_threads = 50
+        barrier = threading.Barrier(n_threads)
+
+        @func.once
+        def fn() -> None:
+            call_count[0] += 1
+
+        def task() -> None:
+            barrier.wait()  # all threads start simultaneously
+            fn()
+
+        threads = [threading.Thread(target=task) for _ in range(n_threads)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+
+        assert call_count[0] == 1
+
+    def test_side_effect_is_visible_to_all_threads(self) -> None:
+        shared_state = {}
+        n_threads = 20
+        barrier = threading.Barrier(n_threads)
+
+        @func.once
+        def fn() -> None:
+            shared_state["ready"] = True
+
+        def task() -> None:
+            barrier.wait()
+            fn()
+
+        threads = [threading.Thread(target=task) for _ in range(n_threads)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+
+        assert shared_state.get("ready") is True

@@ -1,5 +1,6 @@
 import functools
 import gc
+import threading
 import time
 from functools import wraps
 from typing import Any
@@ -63,4 +64,44 @@ def freeze_gc(func: Callable) -> Callable:
             if was_enabled:
                 gc.enable()
 
+    return wrapper
+
+
+def once(func: Callable) -> Callable:
+    """
+    Decorator that ensures a function executes at most once, regardless of
+    how many times it is called. Subsequent calls are silently ignored.
+    Thread-safe.
+
+    Useful for one-time setup that must not repeat: registering plugins,
+    configuring a logger, seeding a random state, etc.
+
+    The decorated function's return value is discarded on all calls, since
+    callers after the first would receive nothing. If you need the return
+    value, use functools.cache instead.
+
+    Example:
+        @once
+        def register_plugins() -> None:
+            ...
+
+        register_plugins()  # runs
+        register_plugins()  # silently ignored
+        register_plugins()  # silently ignored
+    """
+    lock = threading.Lock()
+    has_run = False
+
+    def wrapper(*args, **kwargs) -> None:
+        nonlocal has_run
+        if has_run:
+            return
+        with lock:
+            if has_run:
+                return
+            has_run = True
+            func(*args, **kwargs)
+
+    wrapper.__name__ = func.__name__
+    wrapper.__doc__ = func.__doc__
     return wrapper
