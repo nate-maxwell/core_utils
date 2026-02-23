@@ -452,13 +452,13 @@ class TestOnce:
             fn()
         assert log == ["ran"]
 
-    def test_return_value_is_always_none(self) -> None:
+    def test_return_value_is_always_same(self) -> None:
         @func.once
         def fn() -> None:
             return 42  # type: ignore[return-value]
 
-        assert fn() is None
-        assert fn() is None
+        assert fn() is 42
+        assert fn() is 42
 
     def test_preserves_function_name(self) -> None:
         @func.once

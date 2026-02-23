@@ -70,15 +70,14 @@ def freeze_gc(func: Callable) -> Callable:
 def once(func: Callable) -> Callable:
     """
     Decorator that ensures a function executes at most once, regardless of
-    how many times it is called. Subsequent calls are silently ignored.
-    Thread-safe.
+    how many times it is called. All calls return the value from the first
+    execution. Thread-safe.
 
     Useful for one-time setup that must not repeat: registering plugins,
     configuring a logger, seeding a random state, etc.
 
-    The decorated function's return value is discarded on all calls, since
-    callers after the first would receive nothing. If you need the return
-    value, use functools.cache instead.
+    If the first call raises, the exception propagates and the function will
+    not run again on subsequent calls — they will return None instead.
 
     Example:
         @once
@@ -91,16 +90,18 @@ def once(func: Callable) -> Callable:
     """
     lock = threading.Lock()
     has_run = False
+    result = None
 
-    def wrapper(*args, **kwargs) -> None:
-        nonlocal has_run
+    def wrapper(*args, **kwargs) -> Any:
+        nonlocal has_run, result
         if has_run:
-            return
+            return result
         with lock:
             if has_run:
-                return
+                return result
             has_run = True
-            func(*args, **kwargs)
+            result = func(*args, **kwargs)
+            return result
 
     wrapper.__name__ = func.__name__
     wrapper.__doc__ = func.__doc__
