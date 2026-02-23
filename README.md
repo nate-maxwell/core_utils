@@ -10,5 +10,5 @@ A good utility function should exhibit one of the following:
 
 * Meaningfully simplify a common pattern
 * Encode non-obvious logic
-* Protect against real footguns
+* Protect against real footguns — not just be a thin rename
 * Only wrap existing functions with hard-coded values to enforce standardization
