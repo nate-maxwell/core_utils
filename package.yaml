@@ -1,0 +1,6 @@
+name: core_utils
+authors:
+  - Nate Maxwell
+description: A library of various helpers that are inevitably rewritten in every project.
+version: 0.8.1
+env: {}
