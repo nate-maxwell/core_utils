@@ -5,6 +5,8 @@ from typing import Any
 from typing import Optional
 from typing import Sequence
 
+import core_utils.sysinfo
+
 
 def print_center_header(title: str, header_char: str = "-") -> None:
     """
@@ -32,7 +34,9 @@ def _print_msg(header: str, msg: str, custom_tag: Optional[str] = None) -> None:
 
 def print_error_msg(msg: str, custom_tag: Optional[str] = None) -> None:
     """Simple print wrapper with [ERROR] header and timestamp."""
-    _print_msg("ERROR", msg, custom_tag)
+    now = core_utils.sysinfo.get_time()
+    fmt_msg = f"{now} - {msg}"
+    _print_msg("ERROR", fmt_msg, custom_tag)
 
 
 class ProgressBar(object):
