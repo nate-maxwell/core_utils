@@ -92,7 +92,8 @@ def once(func: Callable) -> Callable:
     has_run = False
     result = None
 
-    def wrapper(*args, **kwargs) -> Any:
+    @wraps(func)
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
         nonlocal has_run, result
         if has_run:
             return result
@@ -103,6 +104,4 @@ def once(func: Callable) -> Callable:
             result = func(*args, **kwargs)
             return result
 
-    wrapper.__name__ = func.__name__
-    wrapper.__doc__ = func.__doc__
     return wrapper
