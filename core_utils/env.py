@@ -55,9 +55,9 @@ def get_bool(key: str, fallback: Optional[bool] = None) -> Optional[bool]:
     value = os.environ.get(key)
     if value is None:
         return fallback
-    if value.lower() in ("1", "true", "yes", "on"):
+    if value.lower() in ("1", "true", "yes", "on", "enabled"):
         return True
-    if value.lower() in ("0", "false", "no", "off"):
+    if value.lower() in ("0", "false", "no", "off", "disabled"):
         return False
     return fallback
 
