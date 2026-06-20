@@ -40,22 +40,29 @@ def can_create_path(path: Union[Path, str]) -> bool:
     Returns:
         bool: True if the path can be created, False otherwise.
     """
-    path = Path(path).resolve()
+    # Check for reserved names on the raw path BEFORE resolving — calling
+    # .resolve() on a path with a reserved name (e.g. NUL) raises OSError on Windows.
+    raw = Path(path)
+    for part in raw.parts:
+        name_without_ext = part.split(".")[0].upper()
+        if name_without_ext in _windows_reserved_names:
+            return False
+
+    try:
+        path = raw.resolve()
+    except OSError:
+        return False
+
     invalid_chars = '<>:"|?*'
     path_str = str(path)
 
-    if len(path_str) > 1 and path_str[1] == ":":  # Skip the drive letters
+    if len(path_str) > 1 and path_str[1] == ":":  # Skip the drive letter
         check_str = path_str[2:]
     else:
         check_str = path_str
 
     if any(char in check_str for char in invalid_chars):
         return False
-
-    for part in path.parts:
-        name_without_ext = part.split(".")[0].upper()
-        if name_without_ext in _windows_reserved_names:
-            return False
 
     if len(path_str) > 260 and not path_str.startswith("\\\\?\\"):
         return False
@@ -69,7 +76,7 @@ def can_create_path(path: Union[Path, str]) -> bool:
             return False
         current = parent
 
-    return os.access(current, os.W_OK)  # Check if parent has write permissions
+    return os.access(current, os.W_OK)
 
 
 def create_structure(structure: dict, destination: Path) -> None:
