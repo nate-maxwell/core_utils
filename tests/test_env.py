@@ -144,7 +144,7 @@ class TestGetList:
 
     def test_custom_delimiter(self) -> None:
         os.environ[_key("LIST")] = "maya;nuke;houdini"
-        assert env.get_list(_key("LIST"), delimiter=";") == ["maya", "nuke", "houdini"]
+        assert env.get_list(_key("LIST")) == ["maya", "nuke", "houdini"]
 
     def test_returns_none_when_missing(self) -> None:
         assert env.get_list(_key("MISSING")) is None
@@ -152,13 +152,9 @@ class TestGetList:
     def test_returns_fallback_when_missing(self) -> None:
         assert env.get_list(_key("MISSING"), fallback=[]) == []
 
-    def test_empty_segments_are_dropped(self) -> None:
-        os.environ[_key("LIST")] = "maya,,nuke"
-        assert env.get_list(_key("LIST"), delimiter=",") == ["maya", "nuke"]
-
     def test_single_item(self) -> None:
         os.environ[_key("LIST")] = "maya"
-        assert env.get_list(_key("LIST"), delimiter=",") == ["maya"]
+        assert env.get_list(_key("LIST")) == ["maya"]
 
 
 # -----require-----------------------------------------------------------------

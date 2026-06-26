@@ -80,9 +80,7 @@ def get_path(key: str, fallback: Optional[Path] = None) -> Optional[Path]:
     return Path(value).resolve()
 
 
-def get_list(
-    key: str, fallback: Optional[list[str]] = None, delimiter: str = os.pathsep
-) -> Optional[list[str]]:
+def get_list(key: str, fallback: Optional[list[str]] = None) -> Optional[list[str]]:
     """
     Get an environment variable as a list of strings, split by a delimiter.
     Strips whitespace from each item and drops empty strings.
@@ -91,14 +89,13 @@ def get_list(
         key (str): The environment variable name.
         fallback (list[str]): Value to return if the variable is not set.
             Defaults to None.
-        delimiter (str): The character to split on. Defaults to os.pathsep.
     Returns:
         Optional[list[str]]: The split and stripped values, or the fallback.
     """
     value = os.environ.get(key)
     if value is None:
         return fallback
-    return [item.strip() for item in value.split(delimiter) if item.strip()]
+    return [item.strip() for item in value.split(os.pathsep) if item.strip()]
 
 
 def require(keys: list[str]) -> None:
